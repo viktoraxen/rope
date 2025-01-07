@@ -52,7 +52,7 @@ exit_on_failure "Make"
 
 if [ "$RUN_TESTS" = true ]; then
     print_title "Running tests"
-    ctest
+    ctest --output-on-failure
     exit_on_failure "Testing"
 fi
 

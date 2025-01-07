@@ -3,8 +3,10 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <functional>
 #include <iostream>
 #include <memory>
+#include <utility>
 
 Rope::Rope(const std::string& str)
 {
@@ -21,16 +23,99 @@ Rope::Rope(const std::string& str)
         leaves[i]->weight = leaves[i]->content.length();
     }
 
-    rebuildTree(leaves);
+    root = buildTree(leaves);
 }
 
-void Rope::rebuildTree(std::vector<RopeNodePtr>& leaves)
+std::string Rope::asString() const
+{
+    if (root == nullptr)
+        return "";
+
+    return nodeAsString(root);
+}
+
+void Rope::print() const
+{
+    std::cout << "Rope Tree" << std::endl;
+
+    printBranches(root);
+}
+
+std::pair<Rope, Rope> Rope::split(int index)
+{
+    if (index < 0 || index > totalWeight(root))
+        return {Rope(), Rope()};
+
+    std::function<std::pair<RopeNodePtr, RopeNodePtr>(RopeNodePtr, int)> splitNode = [&](RopeNodePtr node, int index) -> std::pair<RopeNodePtr, RopeNodePtr>
+    {
+        if (node->isLeaf())
+        {
+            if (index == 0)
+                return {nullptr, node};
+
+            if (index == node->content.length())
+                return {node, nullptr};
+
+            std::string leftString = node->content.substr(0, index);
+            std::string rightString = node->content.substr(index);
+
+            auto left = std::make_shared<RopeNode>();
+            left->content = leftString;
+            left->weight = leftString.length();
+
+            auto right = std::make_shared<RopeNode>();
+            right->content = rightString;
+            right->weight = rightString.length();
+
+            return {left, right};
+        }
+
+        if (index < node->weight)
+        {
+            auto [left, right] = splitNode(node->lChild, index);
+
+            auto newRight = std::make_shared<RopeNode>();
+            newRight->lChild = right;
+            newRight->rChild = node->rChild;
+            // TODO: Is this correct?
+            newRight->weight = node->weight - index;
+            // newRight->weight = (right ? right->weight : 0)
+
+            return {left, newRight};
+        }
+        else if (index == node->weight)
+        {
+            return {node->lChild, node->rChild};
+        }
+        else
+        {
+            auto [left, right] = splitNode(node->rChild, index - node->weight);
+
+            auto newLeft = std::make_shared<RopeNode>();
+            newLeft->lChild = node->lChild;
+            newLeft->rChild = left;
+            // TODO: Is this correct?
+            newLeft->weight = node->weight;
+            // newLeft->weight = node->lChild->weight;
+
+            return {newLeft, right};
+        }
+    };
+
+    auto [left, right] = splitNode(root, index);
+
+    Rope leftRope, rightRope;
+
+    leftRope.root = left;
+    rightRope.root = right;
+
+    return {leftRope, rightRope};
+}
+
+RopeNodePtr Rope::buildTree(std::vector<RopeNodePtr>& leaves)
 {
     if (leaves.empty())
-    {
-        root = nullptr;
-        return;
-    }
+        return nullptr;
 
     while (leaves.size() > 1)
     {
@@ -55,18 +140,36 @@ void Rope::rebuildTree(std::vector<RopeNodePtr>& leaves)
         leaves.resize(newSize);
     }
 
-    root = leaves[0];
+    return leaves.front();
 }
 
-void Rope::print() const
+std::string Rope::nodeAsString(RopeNodePtr node) const
 {
-    std::cout << "Rope Tree" << std::endl;
+    if (node->lChild == nullptr)
+        return node->content;
 
-    printBranches(root);
+    if (node->rChild == nullptr)
+        return nodeAsString(node->lChild);
+
+    return nodeAsString(node->lChild) + nodeAsString(node->rChild);
 }
 
-void Rope::printBranches(RopeNodePtr node, const std::string& prefix, bool isLeft) const
+int Rope::nodeDepth(const RopeNodePtr node) const
 {
+    if (node->isLeaf())
+        return 1;
+
+    return std::max(nodeDepth(node->lChild), nodeDepth(node->rChild));
+}
+
+void Rope::printBranches(const RopeNodePtr node, const std::string& prefix, bool isLeft) const
+{
+    if (node == nullptr)
+    {
+        std::cout << "└─ " << "<empty>" << std::endl;
+        return;
+    }
+
     std::cout << prefix << (isLeft ? "├─ " : "└─ ");
 
     if (node->isLeaf())
@@ -81,35 +184,11 @@ void Rope::printBranches(RopeNodePtr node, const std::string& prefix, bool isLef
     }
 
 
-   std::string childPrefix = prefix + (isLeft ? "│   " : "    ");
+    std::string childPrefix = prefix + (isLeft ? "│   " : "    ");
 
     if (node->lChild)
         printBranches(node->lChild, childPrefix, true);
 
     if (node->rChild)
         printBranches(node->rChild, childPrefix, false);
-}
-
-std::string Rope::asString() const
-{
-    return nodeAsString(root);
-}
-
-std::string Rope::nodeAsString(RopeNodePtr node) const
-{
-    if (node->lChild == nullptr)
-        return node->content;
-
-    if (node->rChild == nullptr)
-        return nodeAsString(node->lChild);
-
-    return nodeAsString(node->lChild) + nodeAsString(node->rChild);
-}
-
-int Rope::nodeDepth(RopeNodePtr node) const
-{
-    if (node->isLeaf())
-        return 1;
-
-    return std::max(nodeDepth(node->lChild), nodeDepth(node->rChild));
 }
