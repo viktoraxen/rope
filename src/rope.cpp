@@ -43,7 +43,7 @@ void Rope::print() const
 
 std::pair<Rope, Rope> Rope::split(int index)
 {
-    if (index < 0 || index > totalWeight(root))
+    if (index < 0 || index > root->subtreeWeight())
         return {Rope(), Rope()};
 
     std::function<std::pair<RopeNodePtr, RopeNodePtr>(RopeNodePtr, int)> splitNode = [&](RopeNodePtr node, int index) -> std::pair<RopeNodePtr, RopeNodePtr>
@@ -77,9 +77,7 @@ std::pair<Rope, Rope> Rope::split(int index)
             auto newRight = std::make_shared<RopeNode>();
             newRight->lChild = right;
             newRight->rChild = node->rChild;
-            // TODO: Is this correct?
             newRight->weight = node->weight - index;
-            // newRight->weight = (right ? right->weight : 0)
 
             return {left, newRight};
         }
@@ -94,9 +92,7 @@ std::pair<Rope, Rope> Rope::split(int index)
             auto newLeft = std::make_shared<RopeNode>();
             newLeft->lChild = node->lChild;
             newLeft->rChild = left;
-            // TODO: Is this correct?
             newLeft->weight = node->weight;
-            // newLeft->weight = node->lChild->weight;
 
             return {newLeft, right};
         }

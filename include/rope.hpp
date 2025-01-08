@@ -14,6 +14,13 @@ struct RopeNode
     std::string content;
 
     bool isLeaf() { return lChild == nullptr && rChild == nullptr; }
+    int subtreeWeight() 
+    {
+        if (isLeaf())
+            return content.length();
+
+        return lChild->subtreeWeight() + rChild->subtreeWeight();
+    }
 };
 
 class Rope
@@ -27,13 +34,13 @@ public:
     Rope(const std::string& str);
     ~Rope() = default;
 
+    std::pair<Rope, Rope> split(int index);
+
+    RopeNodePtr rootNode() const { return root; }
     std::string asString() const;
     void print() const;
 
-    std::pair<Rope, Rope> split(int index);
-
 private:
-
     RopeNodePtr buildTree(std::vector<RopeNodePtr>& leaves);
 
     std::string nodeAsString(RopeNodePtr node) const;
