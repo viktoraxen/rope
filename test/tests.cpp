@@ -10,10 +10,15 @@ struct RopeTestData
     {
         for (int i = 0; i <= STR.length(); i++)
             splits.push_back(rope.split(i));
+
+        negativeSplit = rope.split(-1);
+        oobSplit = rope.split(STR.length() + 1);
     }
 
     Rope rope;
     std::vector<std::pair<Rope, Rope>> splits;
+    std::pair<Rope, Rope> negativeSplit;
+    std::pair<Rope, Rope> oobSplit;
 };
 
 static RopeTestData ropeTestData;
@@ -82,4 +87,26 @@ TEST(RopeSplit, CorrectWeights)
         checkTreeWeights(left.rootNode());
         checkTreeWeights(right.rootNode());
     }
+}
+
+TEST(RopeSplit, NegativeIndex)
+{
+    auto [left, right] = ropeTestData.negativeSplit;
+
+    ASSERT_EQ(left.asString(), "");
+    ASSERT_EQ(right.asString(), "");
+
+    ASSERT_EQ(left.rootNode(), nullptr);
+    ASSERT_EQ(right.rootNode(), nullptr);
+}
+
+TEST(RopeSplit, OutOfBoundIndex)
+{
+    auto [left, right] = ropeTestData.negativeSplit;
+
+    ASSERT_EQ(left.asString(), "");
+    ASSERT_EQ(right.asString(), "");
+
+    ASSERT_EQ(left.rootNode(), nullptr);
+    ASSERT_EQ(right.rootNode(), nullptr);
 }
