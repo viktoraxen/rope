@@ -26,6 +26,26 @@ Rope::Rope(const std::string& str)
     root = buildTree(leaves);
 }
 
+Rope& Rope::operator=(const Rope& other)
+{
+    if (this == &other)
+        return *this;
+
+    root = other.root;
+    return *this;
+}
+
+Rope& Rope::operator=(Rope&& other)
+{
+    if (this == &other)
+        return *this;
+
+    root = std::move(other.root);
+    other.root = nullptr;
+
+    return *this;
+}
+
 std::string Rope::asString() const
 {
     if (root == nullptr)
