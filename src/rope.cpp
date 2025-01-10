@@ -128,6 +128,30 @@ std::pair<Rope, Rope> Rope::split(int index)
     return {leftRope, rightRope};
 }
 
+char Rope::at(int index) const
+{
+    if (index < 0 || index > root->subtreeWeight())
+        return '\0';
+
+    std::function<char(RopeNodePtr, int)> findChar = [&](RopeNodePtr node, int index) -> char
+    {
+        if (node->isLeaf())
+        {
+            if (index >= node->weight)
+                return '\0';
+
+            return node->content.at(index);
+        }
+
+        if (index < node->weight)
+            return findChar(node->lChild, index);
+
+        return findChar(node->rChild, index - node->weight);
+    };
+
+    return findChar(root, index);
+}
+
 RopeNodePtr Rope::buildTree(std::vector<RopeNodePtr>& leaves)
 {
     if (leaves.empty())

@@ -37,6 +37,12 @@ public:
     Rope& operator=(Rope&& other);
 
     std::pair<Rope, Rope> split(int index);
+    void concat(const Rope& other);
+    void insert(const Rope& other, int index);
+    char at(int index) const;
+    void subString(int start, int end, Rope& result) const;
+    void erase(int start, int end);
+    void rebalance();
 
     RopeNodePtr rootNode() const { return root; }
     std::string asString() const;
