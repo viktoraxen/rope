@@ -43,13 +43,11 @@ public:
 private:
     RopeNodePtr buildTree(std::vector<RopeNodePtr>& leaves);
     RopeNodePtr copySubtree(RopeNodePtr node);
+    void copyOnWrite();
 
     std::string nodeAsString(RopeNodePtr node) const;
     int nodeDepth(const RopeNodePtr node) const;
     int nodeLength(const RopeNodePtr node) const;
 
     void printBranches(const RopeNodePtr node, const std::string& prefix = "", bool isLeft = false) const;
-
-    void copy(const Rope& other);
-    void move(Rope&& other);
 };

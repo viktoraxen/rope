@@ -17,6 +17,26 @@ TEST(RopeConstruct, Content)
     ASSERT_EQ(rope.asString(), LOREM);
 }
 
+TEST(RopeCopyConstructor, SameContent)
+{
+    Rope rope("123");
+    Rope copy(rope);
+
+    ASSERT_EQ(rope.asString(), copy.asString());
+}
+
+TEST(RopeCopyConstructor, SeparatelyModifiable)
+{
+    Rope rope("123");
+    Rope copy(rope);
+
+    rope.concat("789");
+    copy.concat("456");
+
+    ASSERT_EQ(rope.asString(), "123789");
+    ASSERT_EQ(copy.asString(), "123456");
+}
+
 TEST(RopeBasics, Length)
 {
     Rope rope(LOREM);

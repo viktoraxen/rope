@@ -48,14 +48,11 @@ void Rope::print() const
 
 std::pair<Rope, Rope> Rope::split(int index) const
 {
-
     if (root == nullptr)
         return {Rope(), Rope()};
 
-
     if (index < 0 || index > nodeLength(root))
         return {Rope(), Rope()};
-
 
     std::function<std::pair<RopeNodePtr, RopeNodePtr>(RopeNodePtr, int)> splitNode = [&](RopeNodePtr node, int index) -> std::pair<RopeNodePtr, RopeNodePtr>
     {
@@ -121,6 +118,8 @@ std::pair<Rope, Rope> Rope::split(int index) const
 
 void Rope::concat(const Rope& other)
 {
+    copyOnWrite();
+
     RopeNodePtr newRoot = std::make_shared<RopeNode>();
 
     newRoot->lChild = root;
@@ -197,17 +196,18 @@ RopeNodePtr Rope::copySubtree(RopeNodePtr node)
 
     RopeNodePtr newNode = std::make_shared<RopeNode>();
 
-    if (node->isLeaf())
-        newNode->content = node->content;
-    else
-    {
-        newNode->lChild = copySubtree(node->lChild);
-        newNode->rChild = copySubtree(node->rChild);
-    }
-
+    newNode->lChild = copySubtree(node->lChild);
+    newNode->rChild = copySubtree(node->rChild);
+    newNode->content = node->content;
     newNode->weight = node->weight;
 
     return newNode; 
+}
+
+void Rope::copyOnWrite()
+{
+    if (!root.unique())
+        root = copySubtree(root);
 }
 
 std::string Rope::nodeAsString(RopeNodePtr node) const
