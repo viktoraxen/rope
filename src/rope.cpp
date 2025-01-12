@@ -26,31 +26,16 @@ Rope::Rope(const std::string& str)
     root = buildTree(leaves);
 }
 
-Rope& Rope::operator=(const Rope& other)
-{
-    if (this == &other)
-        return *this;
+Rope::Rope(const char* str)
+    : Rope(std::string(str))
+{}
 
-    root = other.root;
-    return *this;
-}
-
-Rope& Rope::operator=(Rope&& other)
-{
-    if (this == &other)
-        return *this;
-
-    root = std::move(other.root);
-    other.root = nullptr;
-
-    return *this;
-}
+Rope::Rope(char c)
+    : Rope(std::string(1, c))
+{}
 
 std::string Rope::asString() const
 {
-    if (root == nullptr)
-        return "";
-
     return nodeAsString(root);
 }
 
@@ -61,10 +46,16 @@ void Rope::print() const
     printBranches(root);
 }
 
-std::pair<Rope, Rope> Rope::split(int index)
+std::pair<Rope, Rope> Rope::split(int index) const
 {
-    if (index < 0 || index > root->subtreeWeight())
+
+    if (root == nullptr)
         return {Rope(), Rope()};
+
+
+    if (index < 0 || index > nodeLength(root))
+        return {Rope(), Rope()};
+
 
     std::function<std::pair<RopeNodePtr, RopeNodePtr>(RopeNodePtr, int)> splitNode = [&](RopeNodePtr node, int index) -> std::pair<RopeNodePtr, RopeNodePtr>
     {
@@ -128,9 +119,20 @@ std::pair<Rope, Rope> Rope::split(int index)
     return {leftRope, rightRope};
 }
 
+void Rope::concat(const Rope& other)
+{
+    RopeNodePtr newRoot = std::make_shared<RopeNode>();
+
+    newRoot->lChild = root;
+    newRoot->rChild = copySubtree(other.root);
+    newRoot->weight = length();
+
+    root = newRoot;
+}
+
 char Rope::at(int index) const
 {
-    if (index < 0 || index > root->subtreeWeight())
+    if (index < 0 || index >= nodeLength(root))
         return '\0';
 
     std::function<char(RopeNodePtr, int)> findChar = [&](RopeNodePtr node, int index) -> char
@@ -150,6 +152,11 @@ char Rope::at(int index) const
     };
 
     return findChar(root, index);
+}
+
+int Rope::length() const
+{
+    return nodeLength(root);
 }
 
 RopeNodePtr Rope::buildTree(std::vector<RopeNodePtr>& leaves)
@@ -183,23 +190,57 @@ RopeNodePtr Rope::buildTree(std::vector<RopeNodePtr>& leaves)
     return leaves.front();
 }
 
+RopeNodePtr Rope::copySubtree(RopeNodePtr node)
+{
+    if (node == nullptr)
+        return nullptr;
+
+    RopeNodePtr newNode = std::make_shared<RopeNode>();
+
+    if (node->isLeaf())
+        newNode->content = node->content;
+    else
+    {
+        newNode->lChild = copySubtree(node->lChild);
+        newNode->rChild = copySubtree(node->rChild);
+    }
+
+    newNode->weight = node->weight;
+
+    return newNode; 
+}
+
 std::string Rope::nodeAsString(RopeNodePtr node) const
 {
-    if (node->lChild == nullptr)
-        return node->content;
+    if (node == nullptr)
+        return "";
 
-    if (node->rChild == nullptr)
-        return nodeAsString(node->lChild);
+    if (node->isLeaf())
+        return node->content;
 
     return nodeAsString(node->lChild) + nodeAsString(node->rChild);
 }
 
 int Rope::nodeDepth(const RopeNodePtr node) const
 {
+    if (node == nullptr)
+        return 0;
+
     if (node->isLeaf())
         return 1;
 
     return std::max(nodeDepth(node->lChild), nodeDepth(node->rChild));
+}
+
+int Rope::nodeLength(const RopeNodePtr node) const
+{
+    if (node == nullptr)
+        return 0;
+
+    if (node->isLeaf())
+        return node->content.length();
+
+    return nodeLength(node->lChild) + nodeLength(node->rChild);
 }
 
 void Rope::printBranches(const RopeNodePtr node, const std::string& prefix, bool isLeft) const

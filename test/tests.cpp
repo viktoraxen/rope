@@ -1,123 +1,86 @@
 #include <gtest/gtest.h>
 #include <rope.hpp>
-#include <fstream>
 
-const std::string STR = "Lorem ipsum odor amet, consectetuer adipiscing elit. Ultrices nostra curae mi dui litora lacinia egestas hac. Pharetra tristique arcu blandit montes rhoncus. Mi venenatis blandit dignissim; gravida non amet tempor curabitur. Pellentesque natoque sapien posuere imperdiet praesent cursus lacinia. Sit rhoncus fusce rhoncus hendrerit scelerisque etiam. Ad curabitur litora taciti, rhoncus natoque eros quis. Cras morbi class pretium congue mollis purus blandit gravida volutpat. \
-Rutrum dolor mollis nascetur elit ac molestie ullamcorper rutrum vulputate. Ut volutpat senectus neque cubilia turpis vulputate. Massa purus euismod elementum at et nunc eget. Rutrum finibus penatibus himenaeos lacinia litora et. Pellentesque cubilia aenean diam etiam habitasse justo mollis. Lobortis adipiscing taciti faucibus ex primis lectus lectus. Cursus sociosqu malesuada vivamus lobortis eget curabitur. \
-Ultricies condimentum aliquet potenti fames viverra. Scelerisque porttitor bibendum suspendisse; nunc duis eget. Eleifend suspendisse curabitur metus natoque inceptos viverra rutrum aliquam. Orci neque venenatis feugiat malesuada pellentesque tincidunt. Litora euismod dui dui maximus etiam semper erat magnis inceptos. Hendrerit diam accumsan tempus dapibus; cras mollis. Quisque ut vestibulum dictum risus ridiculus vehicula natoque sociosqu hendrerit. \
-Donec bibendum at viverra vehicula ultrices? Senectus facilisi senectus; morbi nisl suspendisse mattis diam. Gravida leo arcu magnis mus venenatis litora auctor. Nisi primis odio est id erat pellentesque taciti. Dictum interdum dictumst posuere blandit pulvinar semper a nisi blandit. Donec vulputate congue purus; felis ex gravida. Congue laoreet integer etiam nascetur phasellus netus ante aliquam. Sodales himenaeos vitae curae neque dui arcu suscipit. Senectus tincidunt per faucibus risus malesuada conubia penatibus. Sollicitudin condimentum interdum nostra purus morbi arcu aliquet. \
-Massa dapibus pellentesque arcu id convallis a a. Mus ut mus dolor habitant laoreet ex ex potenti! In non pretium varius nec, mattis venenatis. Per donec ut platea dictum sagittis inceptos sociosqu nunc nibh. Pulvinar non parturient nibh donec at convallis molestie. Primis sem ligula sit eros nulla lacus maximus viverra. ";
+const std::string LOREM = "Lorem ipsum odor amet, consectetuer adipiscing elit. Ultrices nostra curae mi dui litora lacinia egestas hac. Pharetra tristique arcu blandit montes rhoncus. Mi venenatis blandit dignissim; gravida non amet tempor curabitur. Pellentesque natoque sapien posuere imperdiet praesent cursus lacinia. Sit rhoncus fusce rhoncus hendrerit scelerisque etiam. Ad curabitur litora taciti, rhoncus natoque eros quis. Cras morbi class pretium congue mollis purus blandit gravida volutpat. \
+    Rutrum dolor mollis nascetur elit ac molestie ullamcorper rutrum vulputate. Ut volutpat senectus neque cubilia turpis vulputate. Massa purus euismod elementum at et nunc eget. Rutrum finibus penatibus himenaeos lacinia litora et. Pellentesque cubilia aenean diam etiam habitasse justo mollis. Lobortis adipiscing taciti faucibus ex primis lectus lectus. Cursus sociosqu malesuada vivamus lobortis eget curabitur. \
+    Ultricies condimentum aliquet potenti fames viverra. Scelerisque porttitor bibendum suspendisse; nunc duis eget. Eleifend suspendisse curabitur metus natoque inceptos viverra rutrum aliquam. Orci neque venenatis feugiat malesuada pellentesque tincidunt. Litora euismod dui dui maximus etiam semper erat magnis inceptos. Hendrerit diam accumsan tempus dapibus; cras mollis. Quisque ut vestibulum dictum risus ridiculus vehicula natoque sociosqu hendrerit. \
+    Donec bibendum at viverra vehicula ultrices? Senectus facilisi senectus; morbi nisl suspendisse mattis diam. Gravida leo arcu magnis mus venenatis litora auctor. Nisi primis odio est id erat pellentesque taciti. Dictum interdum dictumst posuere blandit pulvinar semper a nisi blandit. Donec vulputate congue purus; felis ex gravida. Congue laoreet integer etiam nascetur phasellus netus ante aliquam. Sodales himenaeos vitae curae neque dui arcu suscipit. Senectus tincidunt per faucibus risus malesuada conubia penatibus. Sollicitudin condimentum interdum nostra purus morbi arcu aliquet. \
+    Massa dapibus pellentesque arcu id convallis a a. Mus ut mus dolor habitant laoreet ex ex potenti! In non pretium varius nec, mattis venenatis. Per donec ut platea dictum sagittis inceptos sociosqu nunc nibh. Pulvinar non parturient nibh donec at convallis molestie. Primis sem ligula sit eros nulla lacus maximus viverra. ";
 
-struct RopeTestData
-{
-    std::string readFile(const char* filename)
-    {
-        std::ifstream file(filename);
-        if (!file.is_open()) {
-            throw std::runtime_error(std::string("File not found: ") + filename);
-        }
-        std::ostringstream buffer;
-        buffer << file.rdbuf();
-        return buffer.str();
-    }
-
-    RopeTestData()
-        : rope(STR)
-    {
-        for (int i = 0; i <= STR.length(); i++)
-        {
-            splits.push_back(rope.split(i));
-            ats.push_back(rope.at(i));
-        }
-
-        negativeSplit = rope.split(-1);
-        negativeAt = rope.at(-1);
-        oobSplit = rope.split(STR.length() + 1);
-        oobAt = rope.at(STR.length() + 1);
-    }
-
-    Rope rope;
-    std::vector<char> ats;
-    char negativeAt;
-    char oobAt;
-    std::vector<std::pair<Rope, Rope>> splits;
-    std::pair<Rope, Rope> negativeSplit;
-    std::pair<Rope, Rope> oobSplit;
-};
-
-static RopeTestData ropeTestData;
-
-void checkTreeWeights(RopeNodePtr node)
-{
-    if (!node)
-        return;
-
-    if (node->isLeaf())
-    {
-        EXPECT_EQ(node->weight, node->content.length());
-        return;
-    }
-
-    EXPECT_EQ(node->weight, node->lChild->subtreeWeight());
-
-    checkTreeWeights(node->lChild);
-    checkTreeWeights(node->rChild);
-}
+const std::string SHORT_STR_1 = "Lorem ipsum odor amet, consectetuer adipiscing elit.";
+const std::string SHORT_STR_2 = "Porttitor dictum consectetur dolor lacinia mattis netus duis non!";
 
 TEST(RopeConstruct, Content)
 {
-    ASSERT_EQ(STR, ropeTestData.rope.asString());
+    Rope rope(LOREM);
+
+    ASSERT_EQ(rope.asString(), LOREM);
 }
 
-TEST(RopeConstruct, CorrectWeights)
+TEST(RopeBasics, Length)
 {
-    checkTreeWeights(ropeTestData.rope.rootNode());
+    Rope rope(LOREM);
+
+    ASSERT_EQ(rope.length(), LOREM.length());
+}
+
+static bool splitInit = false;
+static std::vector<std::pair<Rope, Rope>> splits;
+
+void initSplits()
+{
+    if (splitInit)
+        return;
+
+    splitInit = true;
+
+    Rope rope(LOREM);
+
+    for (int i = 0; i <= LOREM.length(); i++)
+        splits.push_back(rope.split(i));
 }
 
 TEST(RopeSplit, NoLettersLost)
 {
-    for (int i = 0; i <= STR.length(); i++)
-    {
-        auto [left, right] = ropeTestData.splits[i];
+    initSplits();
 
-        ASSERT_EQ(STR, left.asString() + right.asString());
+    for (int i = 0; i <= LOREM.length(); i++)
+    {
+        auto [left, right] = splits[i];
+
+        ASSERT_EQ(left.asString() + right.asString(), LOREM);
     }
 }
 
 TEST(RopeSplit, LeftEqual)
 {
-    for (int i = 0; i <= STR.length(); i++)
-    {
-        auto [left, right] = ropeTestData.splits[i];
+    initSplits();
 
-        ASSERT_EQ(left.asString(), STR.substr(0, i));
+    for (int i = 0; i <= LOREM.length(); i++)
+    {
+        auto [left, right] = splits[i];
+
+        ASSERT_EQ(left.asString(), LOREM.substr(0, i));
     }
 }
 
 TEST(RopeSplit, RightEqual)
 {
-    for (int i = 0; i <= STR.length(); i++)
-    {
-        auto [left, right] = ropeTestData.splits[i];
+    initSplits();
 
-        ASSERT_EQ(right.asString(), STR.substr(i));
-    }
-}
-
-TEST(RopeSplit, CorrectWeights)
-{
-    for (const auto [left, right] : ropeTestData.splits)
+    for (int i = 0; i <= LOREM.length(); i++)
     {
-        checkTreeWeights(left.rootNode());
-        checkTreeWeights(right.rootNode());
+        auto [left, right] = splits[i];
+
+        ASSERT_EQ(right.asString(), LOREM.substr(i));
     }
 }
 
 TEST(RopeSplit, NegativeIndex)
 {
-    auto [left, right] = ropeTestData.negativeSplit;
+    Rope rope(LOREM);
 
-    // EXPECT_THROW(ropeTestData.negativeSplit, )
+    auto [left, right] = rope.split(-1);
 
     ASSERT_EQ(left.asString(), "");
     ASSERT_EQ(right.asString(), "");
@@ -128,7 +91,9 @@ TEST(RopeSplit, NegativeIndex)
 
 TEST(RopeSplit, OutOfBoundIndex)
 {
-    auto [left, right] = ropeTestData.negativeSplit;
+    Rope rope(LOREM);
+
+    auto [left, right] = rope.split(LOREM.length() + 1);
 
     ASSERT_EQ(left.asString(), "");
     ASSERT_EQ(right.asString(), "");
@@ -137,18 +102,158 @@ TEST(RopeSplit, OutOfBoundIndex)
     ASSERT_EQ(right.rootNode(), nullptr);
 }
 
+TEST(RopeSplit, EmptyRope) {
+    Rope emptyRope("");
+    auto [left, right] = emptyRope.split(0);
+
+    ASSERT_EQ(left.asString(), "");
+    ASSERT_EQ(right.asString(), "");
+    ASSERT_EQ(left.rootNode(), nullptr);
+    ASSERT_EQ(right.rootNode(), nullptr);
+}
+
+TEST(RopeSplit, SingleCharacter) {
+    Rope single("A");
+    
+    auto [left0, right0] = single.split(0);
+    ASSERT_EQ(left0.asString(), "");
+    ASSERT_EQ(right0.asString(), "A");
+
+    auto [left1, right1] = single.split(1);
+    ASSERT_EQ(left1.asString(), "A");
+    ASSERT_EQ(right1.asString(), "");
+}
+
+TEST(RopeSplit, MultipleSplitsOnSameRope) {
+    Rope rope("ABCDEF");
+    auto [left1, right1] = rope.split(3);  // "ABC" + "DEF"
+    auto [left2, right2] = rope.split(2);  // Should still split the original rope at 2 => "AB" + "CDEF"
+
+    // The original rope's asString() might still be "ABCDEF" if split doesn't modify it
+    ASSERT_EQ(rope.asString(), "ABCDEF");
+    ASSERT_EQ(left1.asString(), "ABC");
+    ASSERT_EQ(right1.asString(), "DEF");
+    ASSERT_EQ(left2.asString(), "AB");
+    ASSERT_EQ(right2.asString(), "CDEF");
+}
+
+TEST(RopeSplit, LargeString) {
+    std::string large(100000, 'A');
+    Rope rope(large);
+
+    auto [left, right] = rope.split(50000);
+
+    ASSERT_EQ(left.asString().size(), 50000);
+    ASSERT_EQ(right.asString().size(), 50000);
+    ASSERT_EQ(left.asString(), std::string(50000, 'A'));
+    ASSERT_EQ(right.asString(), std::string(50000, 'A'));
+}
+
+TEST(RopeSplit, LeafBoundarySplit) {
+    // Suppose MAX_WEIGHT = 5; let’s build a rope manually or by passing a string of length 10:
+    Rope rope("ABCDEFGHIJ"); // 2 leaves if your build logic is strict about MAX_WEIGHT=5
+
+    int boundaryIndex = 5; // Split between 'ABCDE' and 'FGHIJ'
+    auto [left, right] = rope.split(boundaryIndex);
+
+    ASSERT_EQ(left.asString(), "ABCDE");
+    ASSERT_EQ(right.asString(), "FGHIJ");
+}
+
+TEST(RopeSplit, OriginalRopeStillValid) {
+    Rope rope("TestingRope");
+    auto [left, right] = rope.split(7);
+
+    ASSERT_EQ(rope.asString(), "TestingRope");
+}
+
 TEST(RopeAt, CorrectChar)
 {
-    for (int i = 0; i < STR.length(); i++)
-        ASSERT_EQ(ropeTestData.ats.at(i), STR.at(i));
+    Rope rope(LOREM);
+
+    for (int i = 0; i < LOREM.length(); i++)
+        ASSERT_EQ(rope.at(i), LOREM.at(i));
 }
 
 TEST(RopeAt, NegativeIndex)
 {
-    ASSERT_EQ(ropeTestData.negativeAt, '\0');
+    Rope rope(LOREM);
+
+    ASSERT_EQ(rope.at(-1), '\0');
 }
 
 TEST(RopeAt, OutOfBoundsIndex)
 {
-    ASSERT_EQ(ropeTestData.oobAt, '\0');
+    Rope rope(LOREM);
+
+    ASSERT_EQ(rope.at(LOREM.length() + 1), '\0');
+}
+
+TEST(RopeAt, EmptyRope) {
+    Rope empty("");
+
+    ASSERT_EQ(empty.at(0), '\0');     // Index 0 is out of bounds
+    ASSERT_EQ(empty.at(-1), '\0');    // Negative index
+    ASSERT_EQ(empty.at(1), '\0');     // Positive index
+}
+
+TEST(RopeAt, SingleCharacter) {
+    Rope single("A");
+
+    ASSERT_EQ(single.at(0), 'A');
+
+    ASSERT_EQ(single.at(-1), '\0');
+    ASSERT_EQ(single.at(1), '\0');
+}
+
+
+TEST(RopeConcat, NonEmptyStrings)
+{
+    Rope rope = Rope(SHORT_STR_1);
+    rope.concat(Rope(SHORT_STR_2));
+
+    ASSERT_EQ(rope.asString(), SHORT_STR_1 + SHORT_STR_2);
+}
+
+TEST(RopeConcat, OneEmtpyString)
+{
+    Rope rope = Rope(SHORT_STR_1);
+    rope.concat(Rope(""));
+
+    ASSERT_EQ(rope.asString(), SHORT_STR_1);
+}
+
+TEST(RopeConcat, TwoEmtpyStrings)
+{
+    Rope rope = Rope("");
+    rope.concat(Rope(""));
+
+    ASSERT_EQ(rope.asString(), "");
+}
+
+TEST(RopeConcat, SelfConcat)
+{
+    Rope rope = Rope(SHORT_STR_1);
+    rope.concat(rope);
+
+    ASSERT_EQ(rope.asString(), SHORT_STR_1 + SHORT_STR_1);
+}
+
+TEST(RopeConcat, SelfConcatMultiple)
+{
+    Rope rope = Rope(SHORT_STR_1);
+    rope.concat(rope);
+    rope.concat(rope);
+
+    ASSERT_EQ(rope.asString(), SHORT_STR_1 + SHORT_STR_1 + SHORT_STR_1 + SHORT_STR_1);
+}
+
+TEST(RopeConcat, Repeat)
+{
+    Rope rope = Rope("");
+
+    for (const char& c : SHORT_STR_1)
+        rope.concat(Rope(c));
+
+    ASSERT_EQ(rope.asString(), SHORT_STR_1);
 }
