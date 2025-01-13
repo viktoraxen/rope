@@ -215,7 +215,7 @@ TEST(RopeAt, OutOfBoundsIndex)
 {
     Rope rope(LOREM);
 
-    ASSERT_EQ(rope.at(LOREM.length() + 1), '\0');
+    ASSERT_EQ(rope.at(LOREM.length()), '\0');
 }
 
 TEST(RopeAt, EmptyRope) {
@@ -356,4 +356,48 @@ TEST(RopeInsert, NegativeIndex)
 {
     Rope rope = Rope(SHORT_STR_1);
     ASSERT_THROW(rope.insert(Rope(""), -1), std::out_of_range);
+}
+
+TEST(RopeSubString, CorrectString)
+{
+    Rope rope(SHORT_STR_1);
+
+    for (int i = 0; i < SHORT_STR_1.length(); i++)
+        for (int j = i; j < SHORT_STR_1.length(); j++)
+            ASSERT_EQ(rope.subString(i, j).asString(), SHORT_STR_1.substr(i, j - i));
+}
+
+TEST(RopeSubString, NegativeIndex)
+{
+    Rope rope(SHORT_STR_1);
+
+    ASSERT_THROW(rope.subString(-1, 5), std::out_of_range);
+}
+
+TEST(RopeSubString, OutOfBoundsIndex)
+{
+    Rope rope(SHORT_STR_1);
+
+    ASSERT_THROW(rope.subString(0, SHORT_STR_1.length() + 1), std::out_of_range);
+}
+
+TEST(RopeSubString, EmptyRope) {
+    Rope empty("");
+
+    ASSERT_THROW(empty.subString(0, 0), std::out_of_range);
+    ASSERT_THROW(empty.subString(-1, 0), std::out_of_range);
+    ASSERT_THROW(empty.subString(0, -1), std::out_of_range);
+    ASSERT_THROW(empty.subString(-1, -1), std::out_of_range);
+}
+
+TEST(RopeSubString, SingleCharacter) {
+    Rope single("A");
+
+    ASSERT_EQ(single.subString(0, 0).asString(), "");
+    ASSERT_EQ(single.subString(0, 1).asString(), "A");
+
+    ASSERT_THROW(single.subString(1, 1), std::out_of_range);
+    ASSERT_THROW(single.subString(-1, 0), std::out_of_range);
+    ASSERT_THROW(single.subString(0, -1), std::out_of_range);
+    ASSERT_THROW(single.subString(-1, -1), std::out_of_range);
 }

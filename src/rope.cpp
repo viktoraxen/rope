@@ -199,6 +199,20 @@ char Rope::at(int index) const
     return findChar(root, index);
 }
 
+Rope Rope::subString(int start, int end) const
+{
+    if (start < 0 || start >= nodeLength(root) || end < 0 || end > nodeLength(root))
+        throw std::out_of_range("Index out of range");
+
+    if (start >= end)
+        return Rope();
+
+    auto [left, right] = split(end);
+    auto [_, mid] = left.split(start);
+
+    return mid;
+}
+
 void Rope::rebalance()
 {
     copyOnWrite();

@@ -33,7 +33,7 @@ public:
     void concat(const Rope& other);
     void insert(const Rope& other, int index);
     char at(int index) const;
-    void subString(int start, int end, Rope& result) const;
+    Rope subString(int start, int end) const;
     void erase(int start, int end);
     void rebalance();
     int length() const;
