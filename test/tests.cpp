@@ -44,6 +44,15 @@ TEST(RopeBasics, Length)
     ASSERT_EQ(rope.length(), LOREM.length());
 }
 
+TEST(RopeRebalance, NewlyCreatedUnchanged)
+{
+    Rope rope(LOREM);
+    Rope newRope(rope);
+    rope.rebalance();
+
+    ASSERT_EQ(rope, newRope);
+}
+
 static bool splitInit = false;
 static std::vector<std::pair<Rope, Rope>> splits;
 
@@ -276,4 +285,75 @@ TEST(RopeConcat, Repeat)
         rope.concat(Rope(c));
 
     ASSERT_EQ(rope.asString(), SHORT_STR_1);
+}
+
+TEST(RopeInsert, NonEmptyStrings)
+{
+    Rope rope = Rope(SHORT_STR_1);
+    rope.insert(Rope(SHORT_STR_2), 10);
+
+    ASSERT_EQ(rope.asString(), SHORT_STR_1.substr(0, 10) + SHORT_STR_2 + SHORT_STR_1.substr(10));
+}
+
+TEST(RopeInsert, OneEmtpyString)
+{
+    Rope rope = Rope(SHORT_STR_1);
+    rope.insert(Rope(""), 10);
+
+    ASSERT_EQ(rope.asString(), SHORT_STR_1);
+}
+
+TEST(RopeInsert, TwoEmtpyStrings)
+{
+    Rope rope = Rope("");
+    rope.insert(Rope(""), 0);
+
+    ASSERT_EQ(rope.asString(), "");
+}
+
+TEST(RopeInsert, SelfInsert)
+{
+    Rope rope = Rope(SHORT_STR_1);
+    rope.insert(rope, 10);
+
+    ASSERT_EQ(rope.asString(), SHORT_STR_1.substr(0, 10) + SHORT_STR_1 + SHORT_STR_1.substr(10));
+}
+
+TEST(RopeInsert, SelfInsertMultiple)
+{
+    Rope rope = Rope(SHORT_STR_1);
+    rope.insert(rope, 10);
+    rope.insert(rope, 10);
+
+    std::string oneInsert = SHORT_STR_1.substr(0, 10) + SHORT_STR_1 + SHORT_STR_1.substr(10);
+
+    ASSERT_EQ(rope.asString(),oneInsert.substr(0, 10) + oneInsert + oneInsert.substr(10)); 
+}
+
+TEST(RopeInsert, Beginning)
+{
+    Rope rope = Rope(SHORT_STR_1);
+    rope.insert(Rope(SHORT_STR_2), 0);
+
+    ASSERT_EQ(rope.asString(), SHORT_STR_2 + SHORT_STR_1);
+}
+
+TEST(RopeInsert, End)
+{
+    Rope rope = Rope(SHORT_STR_1);
+    rope.insert(Rope(SHORT_STR_2), SHORT_STR_1.length());
+
+    ASSERT_EQ(rope.asString(), SHORT_STR_1 + SHORT_STR_2);
+}
+
+TEST(RopeInsert, OutOfBounds)
+{
+    Rope rope = Rope(SHORT_STR_1);
+    ASSERT_THROW(rope.insert(Rope(""), SHORT_STR_1.length() + 1), std::out_of_range);
+}
+
+TEST(RopeInsert, NegativeIndex)
+{
+    Rope rope = Rope(SHORT_STR_1);
+    ASSERT_THROW(rope.insert(Rope(""), -1), std::out_of_range);
 }

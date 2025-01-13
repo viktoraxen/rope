@@ -34,6 +34,30 @@ Rope::Rope(char c)
     : Rope(std::string(1, c))
 {}
 
+bool Rope::operator==(const Rope& other) const
+{
+    std::function<bool(RopeNodePtr, RopeNodePtr)> cmpNode = [&] (RopeNodePtr node, RopeNodePtr other) -> bool
+    {
+        if (node == nullptr || other == nullptr)
+            return node == nullptr && other == nullptr;
+
+        if (node->isLeaf())
+        {
+            if (!other->isLeaf())
+                return false;
+
+            return node->content == other->content
+                && node->weight == other->weight;
+        }
+
+        return cmpNode(node->lChild, other->lChild)
+            && cmpNode(node->rChild, other->rChild)
+            && node->weight == other->weight;
+    };
+
+    return cmpNode(root, other.root);
+}
+
 std::string Rope::asString() const
 {
     return nodeAsString(root);
@@ -127,6 +151,25 @@ void Rope::concat(const Rope& other)
     newRoot->weight = length();
 
     root = newRoot;
+
+    rebalance();
+}
+
+void Rope::insert(const Rope& other, int index)
+{
+    if (index < 0 || index > nodeLength(root))
+        throw std::out_of_range("Index out of range");
+
+    copyOnWrite();
+
+    auto [left, right] = split(index);
+
+    left.concat(other);
+    left.concat(right);
+
+    root = left.root;
+
+    rebalance();
 }
 
 char Rope::at(int index) const
@@ -136,6 +179,9 @@ char Rope::at(int index) const
 
     std::function<char(RopeNodePtr, int)> findChar = [&](RopeNodePtr node, int index) -> char
     {
+        if (node == nullptr)
+            return '\0';
+
         if (node->isLeaf())
         {
             if (index >= node->weight)
@@ -151,6 +197,14 @@ char Rope::at(int index) const
     };
 
     return findChar(root, index);
+}
+
+void Rope::rebalance()
+{
+    copyOnWrite();
+
+    auto leaves = collectLeaves();
+    root = buildTree(leaves);
 }
 
 int Rope::length() const
@@ -204,6 +258,28 @@ RopeNodePtr Rope::copySubtree(RopeNodePtr node)
     return newNode; 
 }
 
+std::vector<RopeNodePtr> Rope::collectLeaves() const
+{
+    std::function<void(RopeNodePtr, std::vector<RopeNodePtr>&)> collect = [&](RopeNodePtr node, std::vector<RopeNodePtr>& leaves)
+    {
+        if (node == nullptr)
+            return;
+
+        if (node->isLeaf())
+        {
+            leaves.push_back(node);
+            return;
+        }
+
+        collect(node->lChild, leaves);
+        collect(node->rChild, leaves);
+    };
+
+    std::vector<RopeNodePtr> leaves;
+    collect(root, leaves);
+    return leaves;
+}
+
 void Rope::copyOnWrite()
 {
     if (!root.unique())
@@ -229,7 +305,7 @@ int Rope::nodeDepth(const RopeNodePtr node) const
     if (node->isLeaf())
         return 1;
 
-    return std::max(nodeDepth(node->lChild), nodeDepth(node->rChild));
+    return 1 + std::max(nodeDepth(node->lChild), nodeDepth(node->rChild));
 }
 
 int Rope::nodeLength(const RopeNodePtr node) const

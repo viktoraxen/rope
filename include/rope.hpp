@@ -27,6 +27,8 @@ public:
     Rope(const char* str);
     Rope(char c);
 
+    bool operator==(const Rope& other) const;
+
     std::pair<Rope, Rope> split(int index) const;
     void concat(const Rope& other);
     void insert(const Rope& other, int index);
@@ -43,6 +45,7 @@ public:
 private:
     RopeNodePtr buildTree(std::vector<RopeNodePtr>& leaves);
     RopeNodePtr copySubtree(RopeNodePtr node);
+    std::vector<RopeNodePtr> collectLeaves() const;
     void copyOnWrite();
 
     std::string nodeAsString(RopeNodePtr node) const;
