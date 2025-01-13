@@ -384,7 +384,8 @@ TEST(RopeSubString, OutOfBoundsIndex)
 TEST(RopeSubString, EmptyRope) {
     Rope empty("");
 
-    ASSERT_THROW(empty.subString(0, 0), std::out_of_range);
+    ASSERT_NO_THROW(empty.subString(0, 0));
+    ASSERT_THROW(empty.subString(0, 1), std::out_of_range);
     ASSERT_THROW(empty.subString(-1, 0), std::out_of_range);
     ASSERT_THROW(empty.subString(0, -1), std::out_of_range);
     ASSERT_THROW(empty.subString(-1, -1), std::out_of_range);
@@ -395,9 +396,60 @@ TEST(RopeSubString, SingleCharacter) {
 
     ASSERT_EQ(single.subString(0, 0).asString(), "");
     ASSERT_EQ(single.subString(0, 1).asString(), "A");
+    ASSERT_EQ(single.subString(1, 1).asString(), "");
 
-    ASSERT_THROW(single.subString(1, 1), std::out_of_range);
     ASSERT_THROW(single.subString(-1, 0), std::out_of_range);
     ASSERT_THROW(single.subString(0, -1), std::out_of_range);
     ASSERT_THROW(single.subString(-1, -1), std::out_of_range);
+}
+
+TEST(RopeErase, CorrectString)
+{
+    Rope rope(SHORT_STR_1);
+
+    for (int i = 0; i < SHORT_STR_1.length(); i++)
+        for (int j = i; j < SHORT_STR_1.length(); j++)
+        {
+            Rope copy(rope);
+            copy.erase(i, j);
+
+            ASSERT_EQ(copy.asString(), SHORT_STR_1.substr(0, i) + SHORT_STR_1.substr(j));
+        }
+}
+
+TEST(RopeErase, NegativeIndex)
+{
+    Rope rope(SHORT_STR_1);
+
+    ASSERT_THROW(rope.erase(-1, 5), std::out_of_range);
+}
+
+TEST(RopeErase, OutOfBoundsIndex)
+{
+    Rope rope(SHORT_STR_1);
+
+    ASSERT_THROW(rope.erase(0, SHORT_STR_1.length() + 1), std::out_of_range);
+}
+
+TEST(RopeErase, EmptyRope) {
+    Rope empty("");
+
+    ASSERT_NO_THROW(empty.erase(0, 0));
+    ASSERT_THROW(empty.erase(-1, 0), std::out_of_range);
+    ASSERT_THROW(empty.erase(0, -1), std::out_of_range);
+    ASSERT_THROW(empty.erase(-1, -1), std::out_of_range);
+}
+
+TEST(RopeErase, SingleCharacter) {
+    Rope single("A");
+
+    ASSERT_NO_THROW(single.erase(0, 0));
+    ASSERT_NO_THROW(single.erase(1, 1));
+    ASSERT_THROW(single.erase(-1, 0), std::out_of_range);
+    ASSERT_THROW(single.erase(0, -1), std::out_of_range);
+    ASSERT_THROW(single.erase(-1, -1), std::out_of_range);
+
+    single.erase(0, 1);
+
+    ASSERT_EQ(single.asString(), "");
 }

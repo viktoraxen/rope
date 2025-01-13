@@ -174,7 +174,7 @@ void Rope::insert(const Rope& other, int index)
 
 char Rope::at(int index) const
 {
-    if (index < 0 || index >= nodeLength(root))
+    if (index < 0 || index >= length())
         return '\0';
 
     std::function<char(RopeNodePtr, int)> findChar = [&](RopeNodePtr node, int index) -> char
@@ -201,7 +201,7 @@ char Rope::at(int index) const
 
 Rope Rope::subString(int start, int end) const
 {
-    if (start < 0 || start >= nodeLength(root) || end < 0 || end > nodeLength(root))
+    if (start < 0 || start > length() || end < 0 || end > length())
         throw std::out_of_range("Index out of range");
 
     if (start >= end)
@@ -212,6 +212,24 @@ Rope Rope::subString(int start, int end) const
 
     return mid;
 }
+
+void Rope::erase(int start, int end)
+{
+    if (start < 0 || start > length() || end < 0 || end > length())
+        throw std::out_of_range("Index out of range");
+
+    if (start >= end)
+        return;
+
+    auto [left, last] = split(end);
+    auto [first, mid] = left.split(start);
+
+    first.concat(last);
+    root = first.root;
+
+    rebalance();
+}
+
 
 void Rope::rebalance()
 {
